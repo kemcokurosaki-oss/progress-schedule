@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>進捗管理表</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='75' font-size='80' text-anchor='middle'>📊</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <script src="supabase.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main">
+        <div class="app-header">
+            <div>
+                <h1>📊 進捗管理表</h1>
+                <div class="subtitle">全体工程表と同じデータ（Supabase）を参照する工程管理者向け閲覧専用ビュー</div>
+            </div>
+            <div class="sync-indicator">
+                <span class="sync-dot" id="sync-dot"></span>
+                <span id="sync-label">接続中...</span>
+                <button id="refresh-btn" title="今すぐ最新データを取得">🔄 更新</button>
+            </div>
+        </div>
+
+        <div class="summary-bar">
+            <div class="summary-card total">
+                <div class="label">表示中の案件数</div>
+                <div class="value" id="sum-total">-</div>
+            </div>
+            <div class="summary-card delayed">
+                <div class="label">⚠ 遅延あり案件</div>
+                <div class="value" id="sum-delayed">-</div>
+            </div>
+            <div class="summary-card soon">
+                <div class="label">📅 7日以内に出荷予定</div>
+                <div class="value" id="sum-soon">-</div>
+            </div>
+            <div class="summary-card progress">
+                <div class="label">平均進捗率</div>
+                <div class="value" id="sum-avg">-</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>検索</label>
+                <input type="text" id="search-input" placeholder="工事番号・客先名・工事名">
+            </div>
+            <div class="filter-group">
+                <label>工事番号帯</label>
+                <button class="chip-btn active" data-group-filter="all">すべて</button>
+                <button class="chip-btn" data-group-filter="2000">2000番台</button>
+                <button class="chip-btn" data-group-filter="other">その他</button>
+            </div>
+            <div class="filter-group">
+                <label>状態</label>
+                <button class="chip-btn active" data-status-filter="all">すべて</button>
+                <button class="chip-btn status-delayed" data-status-filter="delayed">遅延</button>
+                <button class="chip-btn status-inprogress" data-status-filter="inprogress">進行中</button>
+                <button class="chip-btn status-done" data-status-filter="done">完了</button>
+            </div>
+            <div class="filter-group">
+                <label>並び替え</label>
+                <button class="chip-btn active" data-sort="delay">遅延優先</button>
+                <button class="chip-btn" data-sort="shipping">出荷日順</button>
+                <button class="chip-btn" data-sort="number">工事番号順</button>
+            </div>
+            <div class="legend">
+                <span><span class="legend-dot" style="background:#c62828;"></span>遅延</span>
+                <span><span class="legend-dot" style="background:#1565c0;"></span>進行中</span>
+                <span><span class="legend-dot" style="background:#2e7d32;"></span>完了</span>
+                <span><span class="legend-dot" style="background:#90a4ae;"></span>未着手</span>
+                <span><span class="legend-dot" style="background:#dde3e6;"></span>該当タスクなし</span>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table class="progress-table">
+                <thead><tr id="progress-thead-row"></tr></thead>
+                <tbody id="progress-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="loading-overlay">読み込み中...</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
