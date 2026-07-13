@@ -5,31 +5,54 @@ const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJl
 const supabaseClient = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
 
 // 全体工程表のタスク見出し(parent)を、工程管理者が追う代表工程列にマッピング
+// 2000番台以外は parent（見出し）が空/案件固有のため、textKeywords でタスク名から推定する
 const STAGES = [
-    { key: "order",       label: "受注",         parents: ["受注"] },
-    { key: "plan",        label: "計画承認",     parents: ["基本設計＆計画承認"] },
-    { key: "longlead",    label: "長納期手配",   parents: ["長納期品手配"] },
-    { key: "drawing",     label: "出図・手配",   parents: ["出図＆部品手配"] },
-    { key: "electric",    label: "電気設計",     parents: ["電気設計＆電気品手配"] },
-    { key: "panel",       label: "盤製作",       parents: ["盤製作"] },
-    { key: "assembly",    label: "組立",         parents: ["組立全体"] },
-    { key: "inspection",  label: "外観検査",     parents: ["外観検査"] },
-    { key: "trial",       label: "試運転",       parents: ["試運転"] },
-    { key: "witness",     label: "客先立会",     parents: ["客先立会"] },
-    { key: "shipmeeting", label: "出荷確認会議", parents: ["出荷確認会議"] },
-    { key: "shipping",    label: "出荷",         parents: ["出荷"] },
+    { key: "order",       label: "受注",         parents: ["受注"], textKeywords: ["受注日", "受注説明会", "納入日"] },
+    { key: "plan",        label: "計画承認",     parents: ["基本設計＆計画承認"], textKeywords: ["計画設計", "計画図", "客先承認", "外形図", "電気図面設計", "電気図面客先提出"] },
+    { key: "longlead",    label: "長納期手配",   parents: ["長納期品手配"], textKeywords: ["長納期"], taskTypes: ["long_lead_item"] },
+    { key: "drawing",     label: "出図・手配",   parents: ["出図＆部品手配"], textKeywords: ["出図", "製作品納期", "購入品納期", "部品製作", "部品加工", "神戸送り開始日"], taskTypes: ["drawing"] },
+    { key: "electric",    label: "電気設計",     parents: ["電気設計＆電気品手配"], textKeywords: ["最終電気図面", "電気品手配", "電気品納期"] },
+    { key: "panel",       label: "盤製作",       parents: ["盤製作"], textKeywords: ["盤組立", "盤製作"] },
+    { key: "assembly",    label: "組立",         parents: ["組立全体"], textKeywords: ["機械組立", "電気艤装"] },
+    { key: "inspection",  label: "外観検査",     parents: ["外観検査"], textKeywords: ["外観検査", "簡易検査"] },
+    { key: "trial",       label: "試運転",       parents: ["試運転"], textKeywords: ["試運転"] },
+    { key: "witness",     label: "客先立会",     parents: ["客先立会"], textKeywords: ["客先立会"] },
+    { key: "shipmeeting", label: "出荷確認会議", parents: ["出荷確認会議"], textKeywords: ["出荷確認会議"] },
+    { key: "shipping",    label: "出荷",         parents: ["出荷"], textKeywords: ["出荷準備", "工場出荷"] },
 ];
 const STAGE_PARENT_MAP = {};
 STAGES.forEach(s => s.parents.forEach(p => { STAGE_PARENT_MAP[p] = s.key; }));
+const STAGE_TASK_TYPE_MAP = {};
+STAGES.forEach(s => (s.taskTypes || []).forEach(tt => { STAGE_TASK_TYPE_MAP[tt] = s.key; }));
+
+// 操業工程表など各部門アプリ独自の内部管理用タスク（担当者名・プログラム/画面等の細目）は
+// 12工程・その他のどちらにも該当させず、進捗管理表からは完全に非表示にする
+const EXCLUDED_TASK_TYPES = new Set(["operation", "planning", "field_trip", "business_trip"]);
+
+/** parent(見出し)・task_typeで振り分けできないタスクを、タスク名のキーワードから工程列に推定する */
+function matchStageByText(text) {
+    const t = text || "";
+    for (const s of STAGES) {
+        if (s.textKeywords && s.textKeywords.some(kw => t.includes(kw))) return s.key;
+    }
+    return null;
+}
+
+/** 振り分け優先順位：① parent(見出し) → ② task_type（設計工程表等の部門アプリ由来） → ③ タスク名キーワード */
+function matchStageForTask(task) {
+    return STAGE_PARENT_MAP[task.parent] || STAGE_TASK_TYPE_MAP[task.task_type] || matchStageByText(task.text);
+}
 
 const STATUS_LABEL = { done: "済", delayed: "遅延", inprogress: "進行中", notstarted: "未着手", none: "—" };
+const TOTAL_COLS = 7 + STAGES.length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 工程12列 + その他
 
 let rawTasks = [];
+let completedProjectNumbers = new Set(); // completed_projects に登録済み（＝完了済み）の工事番号
 let projectRows = [];
 let currentSearch = "";
-let currentGroupFilter = "all";   // all | 2000 | other
+let currentGroupFilter = "all";   // all | 2000 | 3000 | 4000 | d | other
 let currentStatusFilter = "all";  // all | delayed | inprogress | done
-let currentSort = "delay";        // delay | shipping | number
+let currentSort = "number";       // delay | shipping | number
 let expandedSet = new Set();
 let refetchTimer = null;
 let realtimeChannel = null;
@@ -62,7 +85,7 @@ async function fetchAllTasks() {
     while (true) {
         const { data, error } = await supabaseClient
             .from("tasks")
-            .select("id, project_number, customer_name, project_details, major_item, machine, unit, text, parent, owner, main_owner, start_date, end_date, is_completed, status, is_business_trip, is_archived")
+            .select("id, project_number, customer_name, project_details, major_item, machine, unit, text, parent, task_type, owner, main_owner, start_date, end_date, is_completed, status, is_business_trip, is_archived")
             .eq("is_archived", false)
             .or("is_business_trip.is.null,is_business_trip.eq.false")
             .range(from, from + pageSize - 1);
@@ -72,6 +95,12 @@ async function fetchAllTasks() {
         from += pageSize;
     }
     return out;
+}
+
+async function fetchCompletedProjectNumbers() {
+    const { data, error } = await supabaseClient.from("completed_projects").select("project_number");
+    if (error) { console.error(error); return new Set(); }
+    return new Set((data || []).map(r => (r.project_number || "").trim()).filter(Boolean));
 }
 
 function classifyTask(task, today) {
@@ -88,6 +117,8 @@ function buildProjectRows(tasks) {
     tasks.forEach(t => {
         const pn = (t.project_number || "").trim();
         if (!pn) return;
+        if (completedProjectNumbers.has(pn)) return; // 完了済み（completed_projects登録済み）は対象外
+        if (EXCLUDED_TASK_TYPES.has(t.task_type)) return; // 操業工程表など部門アプリ独自の内部タスクは非表示
         if (!map.has(pn)) {
             const stages = {};
             STAGES.forEach(s => { stages[s.key] = []; });
@@ -97,7 +128,7 @@ function buildProjectRows(tasks) {
         if (!proj.customer_name && t.customer_name) proj.customer_name = t.customer_name;
         if (!proj.project_details && t.project_details) proj.project_details = t.project_details;
         proj.allTasks.push(t);
-        const stageKey = STAGE_PARENT_MAP[t.parent];
+        const stageKey = matchStageForTask(t);
         if (stageKey) proj.stages[stageKey].push(t);
         else proj.otherTasks.push(t);
     });
@@ -134,11 +165,23 @@ function buildProjectRows(tasks) {
             else if (st === "inprogress") anyInProgress = true;
         });
 
-        const shippingTasks = proj.stages["shipping"];
-        const factoryShip = shippingTasks.filter(t => (t.text || "").includes("工場出荷"));
-        const dateSource = factoryShip.length ? factoryShip : shippingTasks;
+        // 出荷予定日は「工場出荷」というタスク名を持つタスクの終了日を採用する
+        // （見出し(parent)が「出荷」以外の案件でも、タスク名で直接拾う）
+        const factoryShipTasks = proj.allTasks.filter(t => (t.text || "").includes("工場出荷"));
         let shippingDate = null;
-        dateSource.forEach(t => { if (t.end_date && (!shippingDate || t.end_date > shippingDate)) shippingDate = t.end_date; });
+        let shippingDateSource = "confirmed"; // confirmed | ship_task_start | fallback_latest
+        factoryShipTasks.forEach(t => { if (t.end_date && (!shippingDate || t.end_date > shippingDate)) shippingDate = t.end_date; });
+        if (!shippingDate) {
+            // 「工場出荷」タスクはあるが終了日が未設定（データ不備）の場合は、そのタスクの開始日を使う
+            shippingDateSource = "ship_task_start";
+            factoryShipTasks.forEach(t => { if (t.start_date && (!shippingDate || t.start_date > shippingDate)) shippingDate = t.start_date; });
+        }
+        if (!shippingDate) {
+            // 「工場出荷」タスク自体が登録されていない案件は、登録済みタスクの最終予定日を仮の目安として表示する
+            shippingDateSource = "fallback_latest";
+            proj.allTasks.forEach(t => { if (t.end_date && (!shippingDate || t.end_date > shippingDate)) shippingDate = t.end_date; });
+        }
+        const shippingDateIsEstimate = shippingDateSource !== "confirmed";
 
         const progressPct = total ? Math.round((done / total) * 100) : 0;
         let overall;
@@ -157,8 +200,10 @@ function buildProjectRows(tasks) {
             customer_name: proj.customer_name,
             project_details: proj.project_details,
             stageSummaries,
+            otherTasks: proj.otherTasks,
             otherCount: proj.otherTasks.length,
-            total, done, progressPct, overall, shippingDate,
+            allTasks: proj.allTasks,
+            total, done, progressPct, overall, shippingDate, shippingDateIsEstimate, shippingDateSource,
             delayedTasks, inprogressTasks,
         });
     });
@@ -168,7 +213,10 @@ function buildProjectRows(tasks) {
 
 function matchesGroupFilter(pn) {
     if (currentGroupFilter === "2000") return /^2/.test(pn);
-    if (currentGroupFilter === "other") return !/^2/.test(pn);
+    if (currentGroupFilter === "3000") return /^3/.test(pn);
+    if (currentGroupFilter === "4000") return /^4/.test(pn);
+    if (currentGroupFilter === "d") return /^D/i.test(pn);
+    if (currentGroupFilter === "other") return !/^[234]/.test(pn) && !/^D/i.test(pn);
     return true;
 }
 
@@ -229,34 +277,187 @@ function renderSummary() {
 
 function stageCellHtml(row, stage) {
     const s = row.stageSummaries[stage.key];
-    if (s.status === "none") return `<td class="stage-cell none" title="該当タスクなし">—</td>`;
-    const label = STATUS_LABEL[s.status];
-    let text = `${s.done}/${s.total}`;
-    const titleLines = s.tasks.map(t => {
-        const st = classifyTask(t, todayStr());
-        return `${t.text || ""}（${t.owner || "担当未定"}）: ${STATUS_LABEL[st]}${t.end_date ? " / " + fmtDate(t.end_date) : ""}`;
-    }).join("\n");
-    return `<td class="stage-cell ${s.status}" title="${escapeHtml(`${stage.label}：${label}\n` + titleLines)}">${text}</td>`;
+    if (s.status === "none") return `<td class="stage-cell none">—</td>`;
+    const text = `${s.done}/${s.total}`;
+    const pnEsc = escapeHtml(row.project_number).replace(/'/g, "\\'");
+    return `<td class="stage-cell clickable ${s.status}" onclick="showStagePopover(event, '${pnEsc}', '${stage.key}')">${text}</td>`;
+}
+
+function otherCellHtml(row) {
+    if (!row.otherCount) return `<td class="stage-cell none">—</td>`;
+    const pnEsc = escapeHtml(row.project_number).replace(/'/g, "\\'");
+    return `<td class="stage-cell clickable notstarted" onclick="showOtherPopover(event, '${pnEsc}')">${row.otherCount}</td>`;
+}
+
+/** 工程セル（1/1等）クリックで、その工程内のタスクだけを吹き出しで表示する */
+function showStagePopover(evt, pn, stageKey) {
+    const row = projectRows.find(r => r.project_number === pn);
+    const stage = STAGES.find(s => s.key === stageKey);
+    if (!row || !stage) return;
+    const s = row.stageSummaries[stageKey];
+    showTaskListPopover(evt, `${pn}｜${stage.label}（${s.done}/${s.total}）`, s.tasks);
+}
+
+/** 「その他」セルクリックで、12工程に分類されないタスクを吹き出しで表示する */
+function showOtherPopover(evt, pn) {
+    const row = projectRows.find(r => r.project_number === pn);
+    if (!row) return;
+    showTaskListPopover(evt, `${pn}｜その他（${row.otherCount}件）`, row.otherTasks);
+}
+
+/** 汎用：クリックされたセルの下にタスク一覧の吹き出しを表示する */
+function showTaskListPopover(evt, headerText, taskList) {
+    evt.stopPropagation();
+    const today = todayStr();
+    const STATUS_ORDER = { delayed: 0, inprogress: 1, notstarted: 2, done: 3 };
+    const tasks = (taskList || []).slice().sort((a, b) => {
+        const stA = classifyTask(a, today), stB = classifyTask(b, today);
+        if (STATUS_ORDER[stA] !== STATUS_ORDER[stB]) return STATUS_ORDER[stA] - STATUS_ORDER[stB];
+        return (a.end_date || "").localeCompare(b.end_date || "");
+    });
+
+    const itemsHtml = tasks.length ? tasks.map(t => {
+        const st = classifyTask(t, today);
+        return `<li>
+            <span class="sp-status ${st}">${STATUS_LABEL[st]}</span>
+            <span class="sp-body">
+                <div class="sp-name">${escapeHtml(t.text || "")}</div>
+                <div class="sp-meta">${escapeHtml(t.owner || "担当未定")}${t.end_date ? " ／ 期限 " + fmtDate(t.end_date) : ""}</div>
+            </span>
+        </li>`;
+    }).join("") : `<div class="sp-empty">タスクがありません</div>`;
+
+    const popover = document.getElementById("stage-popover");
+    popover.innerHTML = `
+        <div class="sp-header">
+            <span>${escapeHtml(headerText)}</span>
+            <span class="sp-close" onclick="closeStagePopover()">✕</span>
+        </div>
+        <ul>${itemsHtml}</ul>
+    `;
+
+    const cell = evt.currentTarget;
+    const rect = cell.getBoundingClientRect();
+    popover.classList.add("visible");
+    const popRect = popover.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.bottom + 4;
+    if (left + popRect.width > window.innerWidth - 8) left = window.innerWidth - popRect.width - 8;
+    if (top + popRect.height > window.innerHeight - 8) top = rect.top - popRect.height - 4;
+    popover.style.left = Math.max(8, left) + "px";
+    popover.style.top = Math.max(8, top) + "px";
+}
+
+function closeStagePopover() {
+    document.getElementById("stage-popover").classList.remove("visible");
+}
+window.showStagePopover = showStagePopover;
+window.showOtherPopover = showOtherPopover;
+window.closeStagePopover = closeStagePopover;
+
+document.addEventListener("click", (e) => {
+    const popover = document.getElementById("stage-popover");
+    if (popover.classList.contains("visible") && !popover.contains(e.target)) closeStagePopover();
+});
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeStagePopover();
+});
+
+// 案件の変更履歴（change_log）：project_number単位でキャッシュ（"loading"中は読み込み中を表す）
+let changeLogCache = new Map();
+
+async function ensureChangeLogLoaded(pn) {
+    if (changeLogCache.has(pn)) return;
+    changeLogCache.set(pn, "loading");
+    try {
+        const { data, error } = await supabaseClient
+            .from("change_log")
+            .select("task_text, machine, unit, description, changed_by, changed_at")
+            .eq("project_number", pn)
+            .order("changed_at", { ascending: false })
+            .limit(500);
+        if (error) throw error;
+        changeLogCache.set(pn, data || []);
+    } catch (e) {
+        console.error(e);
+        changeLogCache.set(pn, []);
+    }
+    if (expandedSet.has(pn)) renderTable();
+}
+
+/** タスク名（＋machine/unitが両方入っている場合はそれも）で変更履歴を突き合わせる */
+function getChangeHistoryForTask(pn, task) {
+    const log = changeLogCache.get(pn);
+    if (!log || log === "loading") return null;
+    const targetText = (task.text || "").trim();
+    const targetMachine = (task.machine || "").trim();
+    const targetUnit = (task.unit || "").trim();
+    return log.filter(l => {
+        if ((l.task_text || "").trim() !== targetText) return false;
+        const lm = (l.machine || "").trim(), lu = (l.unit || "").trim();
+        if (targetMachine && lm && lm !== targetMachine) return false;
+        if (targetUnit && lu && lu !== targetUnit) return false;
+        return true;
+    }).slice(0, 5);
+}
+
+function fmtDateTime(ts) {
+    if (!ts) return "";
+    const d = new Date(ts);
+    return `${d.getMonth() + 1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 function expandPanelHtml(row) {
     const today = todayStr();
-    const delayedHtml = row.delayedTasks.length
-        ? `<ul>${row.delayedTasks.map(t => `<li><span class="tag">${escapeHtml(t.major_item || "")}</span>${escapeHtml(t.text || "")} ー ${escapeHtml(t.owner || "担当未定")}（期限 ${fmtDate(t.end_date)} / ${Math.abs(daysDiff(t.end_date, today))}日超過）</li>`).join("")}</ul>`
-        : `<div class="expand-empty">遅延中のタスクはありません</div>`;
-    const inprogHtml = row.inprogressTasks.length
-        ? `<ul>${row.inprogressTasks.slice(0, 12).map(t => `<li><span class="tag">${escapeHtml(t.major_item || "")}</span>${escapeHtml(t.text || "")} ー ${escapeHtml(t.owner || "担当未定")}（〜${fmtDate(t.end_date)}）</li>`).join("")}${row.inprogressTasks.length > 12 ? `<li class="expand-empty">他 ${row.inprogressTasks.length - 12} 件…</li>` : ""}</ul>`
-        : `<div class="expand-empty">進行中のタスクはありません</div>`;
+    const pn = row.project_number;
+    const logState = changeLogCache.get(pn);
+    const logLoading = logState === "loading" || logState === undefined;
+    const STATUS_ORDER = { delayed: 0, inprogress: 1, notstarted: 2, done: 3 };
+
+    // 工程（parent）ごとにグループ化。グループ内は遅延優先で並べる
+    const groups = STAGES.map(s => ({ label: s.label, tasks: row.stageSummaries[s.key].tasks }))
+        .concat([{ label: "その他", tasks: row.otherTasks }])
+        .filter(g => g.tasks.length > 0);
+
+    function taskRowHtml(t) {
+        const st = classifyTask(t, today);
+        let historyTitle;
+        if (logLoading) {
+            historyTitle = "変更履歴を読み込み中...";
+        } else {
+            const hist = getChangeHistoryForTask(pn, t) || [];
+            historyTitle = hist.length
+                ? "変更履歴：\n" + hist.map(h => `${fmtDateTime(h.changed_at)} ${h.changed_by || "?"}：${h.description || ""}`).join("\n")
+                : "変更履歴はありません";
+        }
+        return `<tr title="${escapeHtml(historyTitle)}">
+            <td><span class="sp-status ${st}">${STATUS_LABEL[st]}</span></td>
+            <td>${escapeHtml(t.major_item || "")}</td>
+            <td>${escapeHtml(t.text || "")}</td>
+            <td>${escapeHtml(t.owner || "担当未定")}</td>
+            <td>${t.start_date ? fmtDate(t.start_date) : ""}</td>
+            <td>${t.end_date ? fmtDate(t.end_date) : ""}</td>
+        </tr>`;
+    }
+
+    const bodyHtml = groups.map(g => {
+        const doneCount = g.tasks.filter(t => classifyTask(t, today) === "done").length;
+        const sorted = g.tasks.slice().sort((a, b) => {
+            const stA = classifyTask(a, today), stB = classifyTask(b, today);
+            if (STATUS_ORDER[stA] !== STATUS_ORDER[stB]) return STATUS_ORDER[stA] - STATUS_ORDER[stB];
+            return (a.end_date || "").localeCompare(b.end_date || "");
+        });
+        return `<tr class="task-group-row"><td colspan="6">${escapeHtml(g.label)}（${doneCount}/${g.tasks.length}）</td></tr>`
+            + sorted.map(taskRowHtml).join("");
+    }).join("");
+
     return `
-        <div class="expand-panel">
-            <div class="expand-col" style="flex:1; min-width:280px;">
-                <h4>⚠ 遅延中のタスク（${row.delayedTasks.length}件）</h4>
-                ${delayedHtml}
-            </div>
-            <div class="expand-col" style="flex:1; min-width:280px;">
-                <h4>▶ 進行中のタスク（${row.inprogressTasks.length}件）</h4>
-                ${inprogHtml}
-            </div>
+        <div class="task-list-hint">${logLoading ? "変更履歴を読み込み中です…" : "行にマウスを乗せると、そのタスクの変更履歴が表示されます"}</div>
+        <div class="task-list-scroll">
+            <table class="task-list-table">
+                <thead><tr><th>状態</th><th>部署</th><th>タスク名</th><th>担当者</th><th>開始日</th><th>終了日</th></tr></thead>
+                <tbody>${bodyHtml || `<tr><td colspan="6" class="expand-empty">タスクがありません</td></tr>`}</tbody>
+            </table>
         </div>`;
 }
 
@@ -264,7 +465,7 @@ function renderTable() {
     const list = getFilteredForTable();
     const tbody = document.getElementById("progress-tbody");
     if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="${5 + STAGES.length + 1}"><div class="empty-state">条件に一致する案件がありません</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${TOTAL_COLS}"><div class="empty-state">条件に一致する案件がありません</div></td></tr>`;
         return;
     }
     const today = todayStr();
@@ -275,13 +476,24 @@ function renderTable() {
         const isExpanded = expandedSet.has(row.project_number);
         const barClass = row.overall === "done" ? "is-done" : (row.overall === "delayed" ? "is-delayed" : "");
 
+        const SHIP_TITLES = {
+            confirmed: "出荷（工場出荷）予定日",
+            ship_task_start: "「工場出荷」タスクの終了日が未設定のため、開始日を仮の目安として表示しています（全体工程表側でのデータ修正を推奨）",
+            fallback_latest: "「工場出荷」タスクが未登録の案件のため、登録済みタスクの最終予定日を仮の目安として表示しています",
+        };
+        const shipTitle = SHIP_TITLES[row.shippingDateSource] || SHIP_TITLES.confirmed;
+        const shipText = row.shippingDate
+            ? (row.shippingDateIsEstimate ? "～" + fmtDate(row.shippingDate) : fmtDate(row.shippingDate))
+            : "未定";
+
         html += `<tr class="${row.overall === "delayed" ? "row-delayed" : ""}" data-pn="${escapeHtml(row.project_number)}">
+            <td class="col-toggle expand-toggle" onclick="toggleExpand('${escapeHtml(row.project_number).replace(/'/g, "\\'")}')">${isExpanded ? "▲" : "▼"}</td>
             <td class="col-num">${escapeHtml(row.project_number)}</td>
             <td class="col-customer">
                 <div class="customer-name">${escapeHtml(row.customer_name || "（客先未設定）")}</div>
                 <div class="project-details">${escapeHtml(row.project_details || "")}</div>
             </td>
-            <td class="ship-date ${shipClass}">${row.shippingDate ? fmtDate(row.shippingDate) : "未定"}</td>
+            <td class="ship-date ${shipClass}" title="${shipTitle}">${shipText}</td>
             <td>
                 <div class="progress-cell">
                     <div class="progress-bar-bg"><div class="progress-bar-fill ${barClass}" style="width:${row.progressPct}%;"></div></div>
@@ -290,18 +502,22 @@ function renderTable() {
             </td>
             <td style="text-align:center;"><span class="status-badge ${row.overall}">${STATUS_LABEL[row.overall]}</span></td>
             ${STAGES.map(s => stageCellHtml(row, s)).join("")}
-            <td class="stage-cell none" title="上記12工程に分類されないタスク ${row.otherCount}件">${row.otherCount ? row.otherCount : "—"}</td>
-            <td class="expand-toggle" onclick="toggleExpand('${escapeHtml(row.project_number).replace(/'/g, "\\'")}')">${isExpanded ? "▲" : "▼"}</td>
+            ${otherCellHtml(row)}
         </tr>`;
         if (isExpanded) {
-            html += `<tr class="expand-row"><td colspan="${5 + STAGES.length + 1}">${expandPanelHtml(row)}</td></tr>`;
+            html += `<tr class="expand-row"><td colspan="${TOTAL_COLS}">${expandPanelHtml(row)}</td></tr>`;
         }
     });
     tbody.innerHTML = html;
 }
 
 function toggleExpand(pn) {
-    if (expandedSet.has(pn)) expandedSet.delete(pn); else expandedSet.add(pn);
+    if (expandedSet.has(pn)) {
+        expandedSet.delete(pn);
+    } else {
+        expandedSet.add(pn);
+        ensureChangeLogLoaded(pn);
+    }
     renderTable();
 }
 window.toggleExpand = toggleExpand;
@@ -321,7 +537,9 @@ function setSyncStatus(ok, message) {
 async function loadAndRender(isInitial) {
     try {
         setSyncStatus(true, isInitial ? "読み込み中..." : "更新中...");
-        rawTasks = await fetchAllTasks();
+        const [tasks, completedSet] = await Promise.all([fetchAllTasks(), fetchCompletedProjectNumbers()]);
+        rawTasks = tasks;
+        completedProjectNumbers = completedSet;
         projectRows = buildProjectRows(rawTasks);
         renderAll();
         const now = new Date();
@@ -343,6 +561,9 @@ function setupRealtime() {
     realtimeChannel = supabaseClient
         .channel("progress-tasks-changes")
         .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
+            scheduleRefetch();
+        })
+        .on("postgres_changes", { event: "*", schema: "public", table: "completed_projects" }, () => {
             scheduleRefetch();
         })
         .subscribe();
@@ -387,6 +608,7 @@ function setupUiEvents() {
 function buildTableHead() {
     const thead = document.getElementById("progress-thead-row");
     let html = `
+        <th class="col-toggle" style="width:28px;" title="クリックで詳細（遅延・進行中タスク一覧）を開閉"></th>
         <th class="col-num" style="min-width:60px;">工事番号</th>
         <th class="col-customer" style="min-width:160px;">客先／工事名</th>
         <th style="min-width:80px;">出荷予定日</th>
@@ -394,7 +616,6 @@ function buildTableHead() {
         <th style="min-width:64px;">状態</th>
         ${STAGES.map(s => `<th class="stage-head">${s.label}</th>`).join("")}
         <th style="min-width:50px;">その他</th>
-        <th style="min-width:24px;"></th>
     `;
     thead.innerHTML = html;
 }

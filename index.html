@@ -51,6 +51,9 @@
                 <label>工事番号帯</label>
                 <button class="chip-btn active" data-group-filter="all">すべて</button>
                 <button class="chip-btn" data-group-filter="2000">2000番台</button>
+                <button class="chip-btn" data-group-filter="3000">3000番台</button>
+                <button class="chip-btn" data-group-filter="4000">4000番台</button>
+                <button class="chip-btn" data-group-filter="d">D番台</button>
                 <button class="chip-btn" data-group-filter="other">その他</button>
             </div>
             <div class="filter-group">
@@ -62,9 +65,9 @@
             </div>
             <div class="filter-group">
                 <label>並び替え</label>
-                <button class="chip-btn active" data-sort="delay">遅延優先</button>
+                <button class="chip-btn active" data-sort="number">工事番号順</button>
                 <button class="chip-btn" data-sort="shipping">出荷日順</button>
-                <button class="chip-btn" data-sort="number">工事番号順</button>
+                <button class="chip-btn" data-sort="delay">遅延優先</button>
             </div>
             <div class="legend">
                 <span><span class="legend-dot" style="background:#c62828;"></span>遅延</span>
@@ -84,6 +87,8 @@
     </div>
 
     <div id="loading-overlay">読み込み中...</div>
+
+    <div id="stage-popover"></div>
 
     <script src="app.js"></script>
 </body>
