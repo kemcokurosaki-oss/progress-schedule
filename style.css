@@ -118,7 +118,8 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .status-col-body { max-height: 360px; overflow: auto; }
 
 .mini-task-table { width: auto; table-layout: fixed; border-collapse: collapse; font-size: 12px; background: #fff; }
-.mini-task-table col.col-machine, .mini-task-table col.col-unit { width: 58px; }
+.mini-task-table col.col-machine { width: 40px; }
+.mini-task-table col.col-unit { width: 62px; }
 .mini-task-table col.col-name { width: 130px; }
 .mini-task-table col.col-owner { width: 62px; }
 .mini-task-table col.col-start, .mini-task-table col.col-end { width: 78px; }
