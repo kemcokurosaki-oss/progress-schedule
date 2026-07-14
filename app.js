@@ -644,13 +644,6 @@ function setupUiEvents() {
             renderTable();
         });
     });
-
-    document.getElementById("toggle-inspection-cols").addEventListener("click", (e) => {
-        showInspectionCols = !showInspectionCols;
-        e.currentTarget.classList.toggle("active", showInspectionCols);
-        buildTableHead();
-        renderTable();
-    });
 }
 
 function buildTableHead() {
