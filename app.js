@@ -656,6 +656,7 @@ function buildTableHead() {
         <th style="min-width:80px;">出荷予定日</th>
         <th style="min-width:110px;">進捗</th>
         <th style="min-width:64px;">状態</th>
+        <th class="col-stage-toggle" style="width:20px;" title="点検専用列（受入・解体清掃・検査・報告書）の開閉" onclick="toggleInspectionColumns()">${showInspectionCols ? "▼" : "▶"}</th>
         ${stages.map((s, i) => `<th class="stage-head${s.isInspection ? " stage-head-inspect" : ""}${isStageGroupBoundary(stages, i) ? " stage-group-boundary" : ""}" title="${s.isInspection ? "点検案件専用の工程列" : ""}">${s.label}</th>`).join("")}
         <th style="min-width:50px;">その他</th>
     `;
