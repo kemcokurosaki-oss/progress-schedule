@@ -6,7 +6,13 @@ const supabaseClient = supabase.createClient(S_URL, S_KEY, { auth: { persistSess
 
 // 全体工程表のタスク見出し(parent)を、工程管理者が追う代表工程列にマッピング
 // 2000番台以外は parent（見出し）が空/案件固有のため、textKeywords でタスク名から推定する
+// 点検案件（D200・4T08・3T13など）は「受入→解体・清掃→検査→報告書」の順で製作より先に進むため、
+// 点検専用の4工程は通常12工程より前に並べる。通常の製作案件では該当タスクが存在しないため「―」表示になる
 const STAGES = [
+    { key: "pmReceive",   label: "受入",         parents: [], textKeywords: ["納入日"], isInspection: true },
+    { key: "pmTeardown",  label: "解体・清掃",   parents: [], textKeywords: ["解体"], isInspection: true },
+    { key: "pmInspect",   label: "検査",         parents: ["診断"], exactKeywords: ["検査"], isInspection: true },
+    { key: "pmReport",    label: "報告書",       parents: [], textKeywords: ["報告書"], isInspection: true },
     { key: "order",       label: "受注",         parents: ["受注"], textKeywords: ["受注日", "受注説明会"] },
     { key: "plan",        label: "計画承認",     parents: ["基本設計＆計画承認"], textKeywords: ["計画設計", "計画図", "客先承認", "外形図", "電気図面設計", "電気図面客先提出"] },
     { key: "longlead",    label: "長納期手配",   parents: ["長納期品手配"], textKeywords: ["長納期"], taskTypes: ["long_lead_item"] },
@@ -19,11 +25,6 @@ const STAGES = [
     { key: "witness",     label: "客先立会",     parents: ["客先立会"], textKeywords: ["客先立会"] },
     { key: "shipmeeting", label: "出荷確認会議", parents: ["出荷確認会議"], textKeywords: ["出荷確認会議"] },
     { key: "shipping",    label: "出荷",         parents: ["出荷"], textKeywords: ["出荷準備", "工場出荷"] },
-    // 点検案件（D200・4T08・3T13など）専用の工程。通常の製作案件では該当タスクが存在しないため「―」表示になる
-    { key: "pmReceive",   label: "受入",         parents: [], textKeywords: ["納入日"], isInspection: true },
-    { key: "pmTeardown",  label: "解体・清掃",   parents: [], textKeywords: ["解体"], isInspection: true },
-    { key: "pmInspect",   label: "検査",         parents: ["診断"], textKeywords: ["検査"], isInspection: true },
-    { key: "pmReport",    label: "報告書",       parents: [], textKeywords: ["報告書"], isInspection: true },
 ];
 const STAGE_PARENT_MAP = {};
 STAGES.forEach(s => s.parents.forEach(p => { STAGE_PARENT_MAP[p] = s.key; }));
@@ -34,18 +35,29 @@ STAGES.forEach(s => (s.taskTypes || []).forEach(tt => { STAGE_TASK_TYPE_MAP[tt] 
 // 12工程・その他のどちらにも該当させず、進捗管理表からは完全に非表示にする
 const EXCLUDED_TASK_TYPES = new Set(["operation", "planning", "field_trip", "business_trip"]);
 
-/** parent(見出し)・task_typeで振り分けできないタスクを、タスク名のキーワードから工程列に推定する */
+/**
+ * parent(見出し)・task_typeで振り分けできないタスクを、タスク名から工程列に推定する。
+ * exactKeywords（完全一致）を先に判定するのは、点検専用の「検査」が通常案件の
+ * 「外観検査」「簡易検査」に部分一致してしまう（"検査".includes)を防ぐため。
+ */
 function matchStageByText(text) {
-    const t = text || "";
+    const t = (text || "").trim();
+    for (const s of STAGES) {
+        if (s.exactKeywords && s.exactKeywords.includes(t)) return s.key;
+    }
     for (const s of STAGES) {
         if (s.textKeywords && s.textKeywords.some(kw => t.includes(kw))) return s.key;
     }
     return null;
 }
 
-/** 振り分け優先順位：① parent(見出し) → ② task_type（設計工程表等の部門アプリ由来） → ③ タスク名キーワード */
+/**
+ * 振り分け優先順位：① parent(見出し) → ② task_type（設計工程表等の部門アプリ由来） → ③ タスク名
+ * → ④ どれにも当たらず major_item が「製管」（部品名タスクなど）は長納期手配に含める
+ */
 function matchStageForTask(task) {
-    return STAGE_PARENT_MAP[task.parent] || STAGE_TASK_TYPE_MAP[task.task_type] || matchStageByText(task.text);
+    return STAGE_PARENT_MAP[task.parent] || STAGE_TASK_TYPE_MAP[task.task_type] || matchStageByText(task.text)
+        || (task.major_item === "製管" ? "longlead" : null);
 }
 
 const STATUS_LABEL = { done: "済", delayed: "遅延", inprogress: "進行中", notstarted: "未着手", none: "—" };
