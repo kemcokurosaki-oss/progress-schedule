@@ -498,10 +498,10 @@ function expandPanelHtml(row) {
                 ? "変更履歴：\n" + hist.map(h => `${fmtDateTime(h.changed_at)} ${h.changed_by || "?"}：${h.description || ""}`).join("\n")
                 : "変更履歴はありません";
         }
-        return `<tr data-history="${escapeHtml(historyTitle)}" onmouseenter="showHistoryTip(event)" onmouseleave="hideHistoryTip()">
-            <td class="col-name">${escapeHtml(t.text || "")}</td>
+        return `<tr data-history="${escapeHtml(historyTitle)}" onclick="showHistoryTip(event)">
             <td class="col-machine">${escapeHtml(t.machine || "")}</td>
             <td class="col-unit">${escapeHtml(t.unit || "")}</td>
+            <td class="col-name">${escapeHtml(t.text || "")}</td>
             <td class="col-owner">${escapeHtml(t.owner || "担当未定")}</td>
             <td class="col-start">${t.start_date ? fmtDate(t.start_date) : ""}</td>
             <td class="col-end">${t.end_date ? fmtDate(t.end_date) : ""}</td>
@@ -517,8 +517,8 @@ function expandPanelHtml(row) {
             <div class="status-col-head st-${col.key}">${col.label}（${tasks.length}）</div>
             <div class="status-col-body">
                 <table class="mini-task-table">
-                    <colgroup><col class="col-name"><col class="col-machine"><col class="col-unit"><col class="col-owner"><col class="col-start"><col class="col-end"></colgroup>
-                    <thead><tr><th class="col-name">タスク名</th><th class="col-machine">機械</th><th class="col-unit">ユニット</th><th class="col-owner">担当者</th><th class="col-start">開始日</th><th class="col-end">終了日</th></tr></thead>
+                    <colgroup><col class="col-machine"><col class="col-unit"><col class="col-name"><col class="col-owner"><col class="col-start"><col class="col-end"></colgroup>
+                    <thead><tr><th class="col-machine">機械</th><th class="col-unit">ユニット</th><th class="col-name">タスク名</th><th class="col-owner">担当者</th><th class="col-start">開始日</th><th class="col-end">終了日</th></tr></thead>
                     <tbody>${bodyHtml}</tbody>
                 </table>
             </div>
@@ -526,7 +526,7 @@ function expandPanelHtml(row) {
     }).join("");
 
     return `
-        <div class="task-list-hint">${logLoading ? "変更履歴を読み込み中です…" : "行にマウスを乗せると、そのタスクの変更履歴が表示されます"}</div>
+        <div class="task-list-hint">${logLoading ? "変更履歴を読み込み中です…" : "行をクリックすると、そのタスクの変更履歴が表示されます"}</div>
         <div class="status-cols">${colsHtml}</div>`;
 }
 
