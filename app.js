@@ -619,7 +619,7 @@ function buildTableHead() {
         <th style="min-width:80px;">出荷予定日</th>
         <th style="min-width:110px;">進捗</th>
         <th style="min-width:64px;">状態</th>
-        ${STAGES.map(s => `<th class="stage-head">${s.label}</th>`).join("")}
+        ${STAGES.map((s, i) => `<th class="stage-head${s.isInspection ? " stage-head-inspect" : ""}${s.isInspection && !STAGES[i - 1].isInspection ? " stage-head-inspect-first" : ""}" title="${s.isInspection ? "点検案件専用の工程列" : ""}">${s.label}</th>`).join("")}
         <th style="min-width:50px;">その他</th>
     `;
     thead.innerHTML = html;
