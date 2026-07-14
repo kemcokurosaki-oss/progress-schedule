@@ -420,7 +420,8 @@ window.hideHistoryTip = hideHistoryTip;
 document.addEventListener("click", (e) => {
     const popover = document.getElementById("stage-popover");
     if (popover.classList.contains("visible") && !popover.contains(e.target)) closeStagePopover();
-    hideHistoryTip();
+    const tip = document.getElementById("history-tip");
+    if (tip.classList.contains("visible") && !tip.contains(e.target)) hideHistoryTip();
 });
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closeStagePopover(); hideHistoryTip(); }
