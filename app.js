@@ -525,7 +525,7 @@ function renderTable() {
                 </div>
             </td>
             <td style="text-align:center;"><span class="status-badge ${row.overall}">${STATUS_LABEL[row.overall]}</span></td>
-            ${STAGES.map((s, i) => stageCellHtml(row, s, s.isInspection && !(STAGES[i - 1] && STAGES[i - 1].isInspection))).join("")}
+            ${STAGES.map((s, i) => stageCellHtml(row, s, isStageGroupBoundary(i))).join("")}
             ${otherCellHtml(row)}
         </tr>`;
         if (isExpanded) {
