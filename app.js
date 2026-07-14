@@ -292,9 +292,15 @@ function renderSummary() {
     document.getElementById("sum-avg").textContent = avgProgress + "%";
 }
 
-function stageCellHtml(row, stage, isFirstInspectionCol) {
+/** 点検専用工程⇔通常工程の切り替わり位置に区切り線を入れるための判定 */
+function isStageGroupBoundary(i) {
+    if (i === 0) return false;
+    return !!(STAGES[i - 1] && STAGES[i - 1].isInspection) !== !!STAGES[i].isInspection;
+}
+
+function stageCellHtml(row, stage, isGroupBoundary) {
     const s = row.stageSummaries[stage.key];
-    const borderClass = isFirstInspectionCol ? " stage-cell-inspect-first" : "";
+    const borderClass = isGroupBoundary ? " stage-group-boundary" : "";
     if (s.status === "none") return `<td class="stage-cell none${borderClass}">—</td>`;
     const text = `${s.done}/${s.total}`;
     const pnEsc = escapeHtml(row.project_number).replace(/'/g, "\\'");
