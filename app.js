@@ -402,12 +402,11 @@ function showHistoryTip(evt) {
     const tip = document.getElementById("history-tip");
     tip.textContent = text;
     tip.classList.add("visible");
-    const rect = evt.currentTarget.getBoundingClientRect();
     const tipRect = tip.getBoundingClientRect();
-    let left = rect.left;
-    let top = rect.bottom + 6;
-    if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8;
-    if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 6;
+    let left = evt.clientX + 12;
+    let top = evt.clientY + 12;
+    if (left + tipRect.width > window.innerWidth - 8) left = evt.clientX - tipRect.width - 12;
+    if (top + tipRect.height > window.innerHeight - 8) top = evt.clientY - tipRect.height - 12;
     tip.style.left = Math.max(8, left) + "px";
     tip.style.top = Math.max(8, top) + "px";
 }
