@@ -498,7 +498,7 @@ function expandPanelHtml(row) {
                 ? "変更履歴：\n" + hist.map(h => `${fmtDateTime(h.changed_at)} ${h.changed_by || "?"}：${h.description || ""}`).join("\n")
                 : "変更履歴はありません";
         }
-        return `<tr title="${escapeHtml(historyTitle)}">
+        return `<tr data-history="${escapeHtml(historyTitle)}" onmouseenter="showHistoryTip(event)" onmouseleave="hideHistoryTip()">
             <td class="col-st"><span class="status-badge ${st}">${STATUS_LABEL[st]}</span></td>
             <td class="col-name">${escapeHtml(t.text || "")}</td>
             <td class="col-owner">${escapeHtml(t.owner || "担当未定")}</td>
