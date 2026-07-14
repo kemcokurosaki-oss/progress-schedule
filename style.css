@@ -123,9 +123,9 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .mini-task-table col.col-name { width: 130px; }
 .mini-task-table col.col-owner { width: 62px; }
 .mini-task-table col.col-start, .mini-task-table col.col-end { width: 78px; }
-.mini-task-table th { position: sticky; top: 0; text-align: left; padding: 5px 6px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; white-space: nowrap; }
+.mini-task-table th { position: sticky; top: 0; text-align: left; padding: 5px 4px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; white-space: nowrap; }
 .mini-task-table th.col-start, .mini-task-table th.col-end { text-align: center; }
-.mini-task-table td { padding: 4px 6px; border-bottom: 1px solid #f0f2f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-task-table td { padding: 4px 4px; border-bottom: 1px solid #f0f2f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mini-task-table td.col-name, .mini-task-table td.col-machine, .mini-task-table td.col-unit, .mini-task-table td.col-owner { white-space: normal; }
 .mini-task-table td.col-start, .mini-task-table td.col-end { text-align: center; }
 .mini-task-table tbody tr { cursor: pointer; }
