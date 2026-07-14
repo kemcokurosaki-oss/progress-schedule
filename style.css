@@ -125,10 +125,10 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 #stage-popover li { padding: 4px 0; border-bottom: 1px dashed #eceff1; display: flex; align-items: center; gap: 6px; }
 #stage-popover li:last-child { border-bottom: none; }
 #stage-popover .sp-status { flex-shrink: 0; display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: bold; }
-#stage-popover .sp-status.done { background: #e8f5e9; color: #2e7d32; }
+#stage-popover .sp-status.done { background: #f5f5f5; color: #78909c; }
 #stage-popover .sp-status.delayed { background: #ffebee; color: #c62828; }
 #stage-popover .sp-status.inprogress { background: #e3f2fd; color: #1565c0; }
-#stage-popover .sp-status.notstarted { background: #f5f5f5; color: #78909c; }
+#stage-popover .sp-status.notstarted { background: #e8f5e9; color: #2e7d32; }
 #stage-popover .sp-body { flex: 1; min-width: 0; }
 #stage-popover .sp-name { color: #37474f; }
 #stage-popover .sp-meta { color: #90a4ae; font-size: 10.5px; }
