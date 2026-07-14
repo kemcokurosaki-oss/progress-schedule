@@ -106,34 +106,28 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .expand-empty { color: #90a4ae; font-size: 12px; }
 
 .task-list-hint { font-size: 11px; color: #90a4ae; margin-bottom: 6px; }
-.task-list-scroll { max-height: 360px; overflow: auto; border: 1px solid #eceff1; border-radius: 4px; }
-.task-list-table { width: auto; table-layout: fixed; border-collapse: collapse; font-size: 12px; background: #fff; }
-.task-list-table col.col-st { width: 64px; }
-.task-list-table col.col-dept { width: 76px; }
-.task-list-table col.col-name { width: 200px; }
-.task-list-table col.col-owner { width: 96px; }
-.task-list-table col.col-start, .task-list-table col.col-end { width: 78px; }
-.task-list-table th { position: sticky; top: 0; text-align: left; padding: 5px 6px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; white-space: nowrap; }
-.task-list-table th.col-st, .task-list-table th.col-start, .task-list-table th.col-end { text-align: center; }
-.task-list-table td { padding: 4px 6px; border-bottom: 1px solid #f0f2f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.task-list-table td.col-name { white-space: normal; }
-.task-list-table td.col-st, .task-list-table td.col-start, .task-list-table td.col-end { text-align: center; }
-.task-list-table tbody tr:hover { background: #eef6fb; }
-.task-list-table tr.task-group-row td { background: #eef3f6; color: #2c3e50; font-weight: bold; padding: 5px 8px; border-top: 1px solid #dfe3e6; border-bottom: 1px solid #dfe3e6; white-space: normal; }
-.task-list-table tr.task-group-row:hover td { background: #eef3f6; }
 
-/* 状態ごとの色分け（遅延=赤／進行中=青／未着手=緑／済=グレー） */
-.task-list-table tr.task-row td { border-left: 3px solid transparent; }
-.task-list-table tr.st-delayed td { background: #fdecea; }
-.task-list-table tr.st-delayed td.col-st { border-left-color: #e53935; }
-.task-list-table tr.st-delayed:hover td { background: #fbdedb; }
-.task-list-table tr.st-inprogress td { background: #eaf3fc; }
-.task-list-table tr.st-inprogress td.col-st { border-left-color: #1e88e5; }
-.task-list-table tr.st-inprogress:hover td { background: #ddebf9; }
-.task-list-table tr.st-notstarted td.col-st { border-left-color: #43a047; }
-.task-list-table tr.st-done td { color: #b0bec5; }
-.task-list-table tr.st-done td.col-st { border-left-color: #cfd8dc; }
-.task-list-table td.col-st .status-badge { box-shadow: 0 0 0 1px rgba(255,255,255,0.8); }
+/* 状態ごとに4列並べて表示（遅延／進行中／未着手／完了）。幅が足りない場合は2列×2段に折り返す */
+.status-cols { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+.status-col { flex: 1 1 340px; min-width: 340px; max-width: 480px; background: #fff; border: 1px solid #e3e7ea; border-radius: 6px; overflow: hidden; }
+.status-col-head { padding: 6px 10px; font-size: 12px; font-weight: bold; border-bottom: 1px solid #e3e7ea; }
+.status-col-head.st-delayed { background: #ffebee; color: #c62828; }
+.status-col-head.st-inprogress { background: #e3f2fd; color: #1565c0; }
+.status-col-head.st-notstarted { background: #e8f5e9; color: #2e7d32; }
+.status-col-head.st-done { background: #f5f5f5; color: #78909c; }
+.status-col-body { max-height: 360px; overflow: auto; }
+
+.mini-task-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; background: #fff; }
+.mini-task-table col.col-st { width: 50px; }
+.mini-task-table col.col-owner { width: 74px; }
+.mini-task-table col.col-start, .mini-task-table col.col-end { width: 64px; }
+.mini-task-table th { position: sticky; top: 0; text-align: left; padding: 5px 6px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; white-space: nowrap; }
+.mini-task-table th.col-st, .mini-task-table th.col-start, .mini-task-table th.col-end { text-align: center; }
+.mini-task-table td { padding: 4px 6px; border-bottom: 1px solid #f0f2f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-task-table td.col-name { white-space: normal; }
+.mini-task-table td.col-st, .mini-task-table td.col-start, .mini-task-table td.col-end { text-align: center; }
+.mini-task-table tbody tr:hover { background: #eef6fb; }
+.mini-task-table td.col-st .status-badge { box-shadow: 0 0 0 1px rgba(255,255,255,0.8); }
 
 .empty-state { text-align: center; padding: 60px 20px; color: #90a4ae; font-size: 13px; }
 
