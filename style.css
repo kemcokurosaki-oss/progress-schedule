@@ -138,7 +138,7 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .stage-cell.clickable { cursor: pointer; }
 .stage-cell.clickable:hover { filter: brightness(0.94); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
 
-#history-tip { display: none; position: fixed; z-index: 2200; background: #2c3e50; color: #fff; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.28); padding: 8px 12px; min-width: 180px; max-width: 400px; font-family: "メイリオ", Meiryo, sans-serif; font-size: 11px; line-height: 1.6; white-space: pre-line; pointer-events: none; }
+#history-tip { display: none; position: fixed; z-index: 2200; background: #2c3e50; color: #fff; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.28); padding: 8px 12px; min-width: 180px; max-width: 400px; font-family: "メイリオ", Meiryo, sans-serif; font-size: 12px; line-height: 1.6; white-space: pre-line; pointer-events: none; }
 #history-tip.visible { display: block; }
 
 #stage-popover { display: none; position: fixed; z-index: 2000; background: #fff; border: 1px solid #d3d9dc; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,0.18); padding: 10px 12px; min-width: 260px; max-width: 360px; max-height: 320px; overflow-y: auto; font-size: 12px; }
