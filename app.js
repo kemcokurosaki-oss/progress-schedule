@@ -61,7 +61,6 @@ function matchStageForTask(task) {
 }
 
 const STATUS_LABEL = { done: "済", delayed: "遅延", inprogress: "進行中", notstarted: "未着手", none: "—" };
-const TOTAL_COLS = 7 + STAGES.length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 工程列（12＋点検専用4） + その他
 
 let rawTasks = [];
 let completedProjectNumbers = new Set(); // completed_projects に登録済み（＝完了済み）の工事番号
@@ -70,9 +69,18 @@ let currentSearch = "";
 let currentGroupFilter = "all";   // all | 2000 | 3000 | 4000 | d | other
 let currentStatusFilter = "all";  // all | delayed | inprogress | done
 let currentSort = "number";       // delay | shipping | number
+let showInspectionCols = true;    // 点検専用4列（受入・解体清掃・検査・報告書）の表示/非表示
 let expandedSet = new Set();
 let refetchTimer = null;
 let realtimeChannel = null;
+
+/** トグルの状態に応じて、実際に表の列として出す工程一覧を返す */
+function visibleStages() {
+    return showInspectionCols ? STAGES : STAGES.filter(s => !s.isInspection);
+}
+function totalCols() {
+    return 7 + visibleStages().length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 工程列 + その他
+}
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 function todayStr() {
