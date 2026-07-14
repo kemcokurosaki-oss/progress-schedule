@@ -49,6 +49,10 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .progress-table thead th.stage-head { min-width: 64px; }
 .progress-table thead th.stage-head-inspect { background: #5d5470; }
 .progress-table thead th.stage-group-boundary, .progress-table td.stage-group-boundary { border-left: 2px solid #90a4ae; }
+.progress-table th.col-stage-toggle { cursor: pointer; }
+.progress-table th.col-stage-toggle:hover { background: #60758a; }
+.progress-table td.col-stage-toggle { cursor: pointer; text-align: center; color: #90a4ae; background: #f7f9fa; }
+.progress-table td.col-stage-toggle:hover { color: #2c3e50; }
 .progress-table th.col-toggle, .progress-table td.col-toggle { position: sticky; left: 0; z-index: 3; background: #546e7a; }
 .progress-table td.col-toggle { background: #eef3f6; z-index: 2; }
 .progress-table th.col-num, .progress-table td.col-num { position: sticky; left: 28px; z-index: 3; background: #546e7a; }
