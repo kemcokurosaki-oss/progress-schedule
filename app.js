@@ -49,7 +49,7 @@ function matchStageForTask(task) {
 }
 
 const STATUS_LABEL = { done: "済", delayed: "遅延", inprogress: "進行中", notstarted: "未着手", none: "—" };
-const TOTAL_COLS = 7 + STAGES.length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 工程12列 + その他
+const TOTAL_COLS = 7 + STAGES.length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 工程列（12＋点検専用4） + その他
 
 let rawTasks = [];
 let completedProjectNumbers = new Set(); // completed_projects に登録済み（＝完了済み）の工事番号
