@@ -484,10 +484,10 @@ function expandPanelHtml(row) {
     const logState = changeLogCache.get(pn);
     const logLoading = logState === "loading" || logState === undefined;
 
-    // 状態（遅延・進行中・未着手・完了）ごとにグループ化。グループ内は終了日が近い順
+    // 状態（遅延・進行中・未着手・完了）ごとにグループ化。グループ内は開始日が近い順
     const buckets = { delayed: [], inprogress: [], notstarted: [], done: [] };
     row.allTasks.forEach(t => buckets[classifyTask(t, today)].push(t));
-    Object.values(buckets).forEach(list => list.sort((a, b) => (a.end_date || "").localeCompare(b.end_date || "")));
+    Object.values(buckets).forEach(list => list.sort((a, b) => (a.start_date || "").localeCompare(b.start_date || "")));
 
     function taskRowHtml(t) {
         let historyTitle;
