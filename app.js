@@ -79,8 +79,16 @@ function visibleStages() {
     return showInspectionCols ? STAGES : STAGES.filter(s => !s.isInspection);
 }
 function totalCols() {
-    return 7 + visibleStages().length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 工程列 + その他
+    return 8 + visibleStages().length; // トグル + 工事番号 + 客先 + 出荷予定日 + 進捗 + 状態 + 点検列開閉 + 工程列 + その他
 }
+
+/** 点検専用4列（受入・解体清掃・検査・報告書）の開閉トグル */
+function toggleInspectionColumns() {
+    showInspectionCols = !showInspectionCols;
+    buildTableHead();
+    renderTable();
+}
+window.toggleInspectionColumns = toggleInspectionColumns;
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 function todayStr() {
