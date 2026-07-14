@@ -534,11 +534,11 @@ function renderTable() {
                 </div>
             </td>
             <td style="text-align:center;"><span class="status-badge ${row.overall}">${STATUS_LABEL[row.overall]}</span></td>
-            ${STAGES.map((s, i) => stageCellHtml(row, s, isStageGroupBoundary(i))).join("")}
+            ${stages.map((s, i) => stageCellHtml(row, s, isStageGroupBoundary(stages, i))).join("")}
             ${otherCellHtml(row)}
         </tr>`;
         if (isExpanded) {
-            html += `<tr class="expand-row"><td colspan="${TOTAL_COLS}">${expandPanelHtml(row)}</td></tr>`;
+            html += `<tr class="expand-row"><td colspan="${totalCols()}">${expandPanelHtml(row)}</td></tr>`;
         }
     });
     tbody.innerHTML = html;
