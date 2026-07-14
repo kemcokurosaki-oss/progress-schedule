@@ -496,8 +496,9 @@ function expandPanelHtml(row) {
 function renderTable() {
     const list = getFilteredForTable();
     const tbody = document.getElementById("progress-tbody");
+    const stages = visibleStages();
     if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="${TOTAL_COLS}"><div class="empty-state">条件に一致する案件がありません</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${totalCols()}"><div class="empty-state">条件に一致する案件がありません</div></td></tr>`;
         return;
     }
     const today = todayStr();
