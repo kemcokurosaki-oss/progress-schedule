@@ -653,7 +653,7 @@ function buildTableHead() {
     let html = `
         <th class="col-toggle" style="width:28px;" title="クリックで詳細（遅延・進行中タスク一覧）を開閉"></th>
         <th class="col-num" style="width:60px;">工事番号</th>
-        <th class="col-customer" style="width:160px;">客先／工事名</th>
+        <th class="col-customer" style="width:340px;">客先／工事名</th>
         <th style="width:80px;">出荷予定日</th>
         <th style="width:110px;">進捗</th>
         <th style="width:64px;">状態</th>
