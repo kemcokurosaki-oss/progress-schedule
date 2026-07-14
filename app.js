@@ -280,12 +280,13 @@ function renderSummary() {
     document.getElementById("sum-avg").textContent = avgProgress + "%";
 }
 
-function stageCellHtml(row, stage) {
+function stageCellHtml(row, stage, isFirstInspectionCol) {
     const s = row.stageSummaries[stage.key];
-    if (s.status === "none") return `<td class="stage-cell none">—</td>`;
+    const borderClass = isFirstInspectionCol ? " stage-cell-inspect-first" : "";
+    if (s.status === "none") return `<td class="stage-cell none${borderClass}">—</td>`;
     const text = `${s.done}/${s.total}`;
     const pnEsc = escapeHtml(row.project_number).replace(/'/g, "\\'");
-    return `<td class="stage-cell clickable ${s.status}" onclick="showStagePopover(event, '${pnEsc}', '${stage.key}')">${text}</td>`;
+    return `<td class="stage-cell clickable ${s.status}${borderClass}" onclick="showStagePopover(event, '${pnEsc}', '${stage.key}')">${text}</td>`;
 }
 
 function otherCellHtml(row) {
