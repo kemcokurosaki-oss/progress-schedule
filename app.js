@@ -345,9 +345,17 @@ function showOtherPopover(evt, pn) {
     showTaskListPopover(evt, `${pn}｜その他（${row.otherCount}件）`, row.otherTasks);
 }
 
-/** 汎用：クリックされたセルの下にタスク一覧の吹き出しを表示する */
+let stagePopoverOwner = null;
+
+/** 汎用：クリックされたセルの下にタスク一覧の吹き出しを表示する（同じセルをもう一度クリックすると非表示にする） */
 function showTaskListPopover(evt, headerText, taskList) {
     evt.stopPropagation();
+    const popover = document.getElementById("stage-popover");
+    const cell = evt.currentTarget;
+    if (popover.classList.contains("visible") && stagePopoverOwner === cell) {
+        closeStagePopover();
+        return;
+    }
     const today = todayStr();
     const STATUS_ORDER = { delayed: 0, inprogress: 1, notstarted: 2, done: 3 };
     const tasks = (taskList || []).slice().sort((a, b) => {
