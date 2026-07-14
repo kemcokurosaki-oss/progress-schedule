@@ -7,7 +7,7 @@ const supabaseClient = supabase.createClient(S_URL, S_KEY, { auth: { persistSess
 // 全体工程表のタスク見出し(parent)を、工程管理者が追う代表工程列にマッピング
 // 2000番台以外は parent（見出し）が空/案件固有のため、textKeywords でタスク名から推定する
 const STAGES = [
-    { key: "order",       label: "受注",         parents: ["受注"], textKeywords: ["受注日", "受注説明会", "納入日"] },
+    { key: "order",       label: "受注",         parents: ["受注"], textKeywords: ["受注日", "受注説明会"] },
     { key: "plan",        label: "計画承認",     parents: ["基本設計＆計画承認"], textKeywords: ["計画設計", "計画図", "客先承認", "外形図", "電気図面設計", "電気図面客先提出"] },
     { key: "longlead",    label: "長納期手配",   parents: ["長納期品手配"], textKeywords: ["長納期"], taskTypes: ["long_lead_item"] },
     { key: "drawing",     label: "出図・手配",   parents: ["出図＆部品手配"], textKeywords: ["出図", "製作品納期", "購入品納期", "部品製作", "部品加工", "神戸送り開始日"], taskTypes: ["drawing"] },
@@ -19,6 +19,11 @@ const STAGES = [
     { key: "witness",     label: "客先立会",     parents: ["客先立会"], textKeywords: ["客先立会"] },
     { key: "shipmeeting", label: "出荷確認会議", parents: ["出荷確認会議"], textKeywords: ["出荷確認会議"] },
     { key: "shipping",    label: "出荷",         parents: ["出荷"], textKeywords: ["出荷準備", "工場出荷"] },
+    // 点検案件（D200・4T08・3T13など）専用の工程。通常の製作案件では該当タスクが存在しないため「―」表示になる
+    { key: "pmReceive",   label: "受入",         parents: [], textKeywords: ["納入日"], isInspection: true },
+    { key: "pmTeardown",  label: "解体・清掃",   parents: [], textKeywords: ["解体"], isInspection: true },
+    { key: "pmInspect",   label: "検査",         parents: ["診断"], textKeywords: ["検査"], isInspection: true },
+    { key: "pmReport",    label: "報告書",       parents: [], textKeywords: ["報告書"], isInspection: true },
 ];
 const STAGE_PARENT_MAP = {};
 STAGES.forEach(s => s.parents.forEach(p => { STAGE_PARENT_MAP[p] = s.key; }));
