@@ -470,13 +470,13 @@ function expandPanelHtml(row) {
                 ? "変更履歴：\n" + hist.map(h => `${fmtDateTime(h.changed_at)} ${h.changed_by || "?"}：${h.description || ""}`).join("\n")
                 : "変更履歴はありません";
         }
-        return `<tr title="${escapeHtml(historyTitle)}">
-            <td><span class="sp-status ${st}">${STATUS_LABEL[st]}</span></td>
-            <td>${escapeHtml(t.major_item || "")}</td>
-            <td>${escapeHtml(t.text || "")}</td>
-            <td>${escapeHtml(t.owner || "担当未定")}</td>
-            <td>${t.start_date ? fmtDate(t.start_date) : ""}</td>
-            <td>${t.end_date ? fmtDate(t.end_date) : ""}</td>
+        return `<tr class="task-row st-${st}" title="${escapeHtml(historyTitle)}">
+            <td class="col-st"><span class="status-badge ${st}">${STATUS_LABEL[st]}</span></td>
+            <td class="col-dept">${escapeHtml(t.major_item || "")}</td>
+            <td class="col-name">${escapeHtml(t.text || "")}</td>
+            <td class="col-owner">${escapeHtml(t.owner || "担当未定")}</td>
+            <td class="col-start">${t.start_date ? fmtDate(t.start_date) : ""}</td>
+            <td class="col-end">${t.end_date ? fmtDate(t.end_date) : ""}</td>
         </tr>`;
     }
 
