@@ -108,7 +108,7 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .task-list-hint { font-size: 11px; color: #90a4ae; margin-bottom: 6px; }
 .task-list-scroll { max-height: 360px; overflow: auto; border: 1px solid #eceff1; border-radius: 4px; }
 .task-list-table { width: auto; table-layout: fixed; border-collapse: collapse; font-size: 12px; background: #fff; }
-.task-list-table col.col-st { width: 60px; }
+.task-list-table col.col-st { width: 64px; }
 .task-list-table col.col-dept { width: 76px; }
 .task-list-table col.col-name { width: 200px; }
 .task-list-table col.col-owner { width: 96px; }
