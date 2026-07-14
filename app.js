@@ -403,14 +403,22 @@ window.showStagePopover = showStagePopover;
 window.showOtherPopover = showOtherPopover;
 window.closeStagePopover = closeStagePopover;
 
-/** タスク行をクリックした際、変更履歴を独自の吹き出し（#history-tip）で表示する（title属性のネイティブツールチップは文字サイズ・フォントを変更できないため） */
+let historyTipOwner = null;
+
+/** タスク行をクリックした際、変更履歴を独自の吹き出し（#history-tip）で表示する（title属性のネイティブツールチップは文字サイズ・フォントを変更できないため）。同じ行をもう一度クリックすると非表示にする */
 function showHistoryTip(evt) {
     evt.stopPropagation();
-    const text = evt.currentTarget.dataset.history;
-    if (!text) return;
     const tip = document.getElementById("history-tip");
+    const row = evt.currentTarget;
+    if (tip.classList.contains("visible") && historyTipOwner === row) {
+        hideHistoryTip();
+        return;
+    }
+    const text = row.dataset.history;
+    if (!text) return;
     tip.textContent = text;
     tip.classList.add("visible");
+    historyTipOwner = row;
     const tipRect = tip.getBoundingClientRect();
     let left = evt.clientX + 12;
     let top = evt.clientY + 12;
@@ -421,6 +429,7 @@ function showHistoryTip(evt) {
 }
 function hideHistoryTip() {
     document.getElementById("history-tip").classList.remove("visible");
+    historyTipOwner = null;
 }
 window.showHistoryTip = showHistoryTip;
 window.hideHistoryTip = hideHistoryTip;
