@@ -38,7 +38,7 @@ button, input, select { font-family: "メイリオ", Meiryo, sans-serif; }
 .chip-btn.active { background: #2c3e50; color: #fff; border-color: #2c3e50; }
 .chip-btn.status-delayed.active { background: #c62828; border-color: #c62828; }
 .chip-btn.status-inprogress.active { background: #1565c0; border-color: #1565c0; }
-.chip-btn.status-done.active { background: #2e7d32; border-color: #2e7d32; }
+.chip-btn.status-done.active { background: #78909c; border-color: #78909c; }
 .legend { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 11px; color: #607d8b; flex-wrap: wrap; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
 
