@@ -472,10 +472,10 @@ function fmtDateTime(ts) {
 }
 
 const EXPAND_STATUS_COLUMNS = [
+    { key: "done",       label: "完了" },
     { key: "delayed",    label: "遅延" },
     { key: "inprogress", label: "進行中" },
     { key: "notstarted", label: "未着手" },
-    { key: "done",       label: "完了" },
 ];
 
 function expandPanelHtml(row) {
