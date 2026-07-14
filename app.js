@@ -375,7 +375,6 @@ function showTaskListPopover(evt, headerText, taskList) {
         </li>`;
     }).join("") : `<div class="sp-empty">タスクがありません</div>`;
 
-    const popover = document.getElementById("stage-popover");
     popover.innerHTML = `
         <div class="sp-header">
             <span>${escapeHtml(headerText)}</span>
@@ -384,9 +383,9 @@ function showTaskListPopover(evt, headerText, taskList) {
         <ul>${itemsHtml}</ul>
     `;
 
-    const cell = evt.currentTarget;
     const rect = cell.getBoundingClientRect();
     popover.classList.add("visible");
+    stagePopoverOwner = cell;
     const popRect = popover.getBoundingClientRect();
     let left = rect.left;
     let top = rect.bottom + 4;
@@ -398,6 +397,7 @@ function showTaskListPopover(evt, headerText, taskList) {
 
 function closeStagePopover() {
     document.getElementById("stage-popover").classList.remove("visible");
+    stagePopoverOwner = null;
 }
 window.showStagePopover = showStagePopover;
 window.showOtherPopover = showOtherPopover;
