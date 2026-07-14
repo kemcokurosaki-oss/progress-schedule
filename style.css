@@ -107,8 +107,8 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 
 .task-list-hint { font-size: 11px; color: #90a4ae; margin-bottom: 6px; }
 
-/* 状態ごとに4列並べて表示（遅延／進行中／未着手／完了）。幅が足りない場合は2列×2段に折り返す */
-.status-cols { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+/* 状態ごとに4列を常に横並びで表示（遅延／進行中／未着手／完了）。収まらない場合は折り返さず横スクロール */
+.status-cols { display: flex; flex-wrap: nowrap; gap: 12px; align-items: flex-start; overflow-x: auto; }
 .status-col { flex: 0 0 auto; background: #fff; border: 1px solid #e3e7ea; border-radius: 6px; overflow: hidden; }
 .status-col-head { padding: 6px 10px; font-size: 12px; font-weight: bold; border-bottom: 1px solid #e3e7ea; }
 .status-col-head.st-delayed { background: #ffebee; color: #c62828; }
