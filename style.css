@@ -44,7 +44,7 @@ button, input, select { font-family: "メイリオ", Meiryo, sans-serif; }
 
 /* ===== テーブル ===== */
 .table-wrap { flex: 1; overflow: auto; padding: 0 16px 16px; }
-table.progress-table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); font-size: 12px; }
+table.progress-table { border-collapse: separate; border-spacing: 0; width: max-content; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); font-size: 12px; }
 .progress-table thead th { position: sticky; top: 0; z-index: 5; background: #546e7a; color: #fff; font-weight: normal; padding: 6px 4px; text-align: center; border-right: 1px solid #607d8b; white-space: nowrap; font-size: 11.5px; }
 .progress-table thead th.stage-head { min-width: 64px; }
 .progress-table thead th.stage-head-inspect { background: #5d5470; }
