@@ -132,6 +132,7 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .task-list-table tr.st-notstarted td.col-st { border-left-color: #43a047; }
 .task-list-table tr.st-done td { color: #b0bec5; }
 .task-list-table tr.st-done td.col-st { border-left-color: #cfd8dc; }
+.task-list-table td.col-st .status-badge { box-shadow: 0 0 0 1px rgba(255,255,255,0.8); }
 
 .empty-state { text-align: center; padding: 60px 20px; color: #90a4ae; font-size: 13px; }
 
