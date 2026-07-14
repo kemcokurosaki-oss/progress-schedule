@@ -495,7 +495,11 @@ function expandPanelHtml(row) {
         <div class="task-list-hint">${logLoading ? "変更履歴を読み込み中です…" : "行にマウスを乗せると、そのタスクの変更履歴が表示されます"}</div>
         <div class="task-list-scroll">
             <table class="task-list-table">
-                <thead><tr><th>状態</th><th>部署</th><th>タスク名</th><th>担当者</th><th>開始日</th><th>終了日</th></tr></thead>
+                <colgroup>
+                    <col class="col-st"><col class="col-dept"><col class="col-name">
+                    <col class="col-owner"><col class="col-start"><col class="col-end">
+                </colgroup>
+                <thead><tr><th class="col-st">状態</th><th class="col-dept">部署</th><th class="col-name">タスク名</th><th class="col-owner">担当者</th><th class="col-start">開始日</th><th class="col-end">終了日</th></tr></thead>
                 <tbody>${bodyHtml || `<tr><td colspan="6" class="expand-empty">タスクがありません</td></tr>`}</tbody>
             </table>
         </div>`;
