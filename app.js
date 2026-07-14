@@ -542,6 +542,7 @@ function renderTable() {
                 </div>
             </td>
             <td style="text-align:center;"><span class="status-badge ${row.overall}">${STATUS_LABEL[row.overall]}</span></td>
+            <td class="col-stage-toggle" onclick="toggleInspectionColumns()"></td>
             ${stages.map((s, i) => stageCellHtml(row, s, isStageGroupBoundary(stages, i))).join("")}
             ${otherCellHtml(row)}
         </tr>`;
