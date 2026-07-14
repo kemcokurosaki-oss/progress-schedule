@@ -72,7 +72,7 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .progress-cell { display: flex; align-items: center; gap: 6px; min-width: 90px; }
 .progress-bar-bg { flex: 1; height: 8px; background: #e0e4e7; border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #42a5f5, #1e88e5); border-radius: 4px; }
-.progress-bar-fill.is-done { background: linear-gradient(90deg, #66bb6a, #388e3c); }
+.progress-bar-fill.is-done { background: linear-gradient(90deg, #b0bec5, #78909c); }
 .progress-bar-fill.is-delayed { background: linear-gradient(90deg, #ef5350, #c62828); }
 .progress-pct { font-size: 11px; color: #546e7a; width: 30px; text-align: right; flex-shrink: 0; }
 
