@@ -107,12 +107,31 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 
 .task-list-hint { font-size: 11px; color: #90a4ae; margin-bottom: 6px; }
 .task-list-scroll { max-height: 360px; overflow-y: auto; border: 1px solid #eceff1; border-radius: 4px; }
-.task-list-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
-.task-list-table th { position: sticky; top: 0; text-align: left; padding: 5px 8px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; }
-.task-list-table td { padding: 4px 8px; border-bottom: 1px solid #f0f2f3; }
+.task-list-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; background: #fff; }
+.task-list-table col.col-st { width: 58px; }
+.task-list-table col.col-dept { width: 64px; }
+.task-list-table col.col-owner { width: 84px; }
+.task-list-table col.col-start, .task-list-table col.col-end { width: 74px; }
+.task-list-table th { position: sticky; top: 0; text-align: left; padding: 5px 6px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; white-space: nowrap; }
+.task-list-table th.col-st, .task-list-table th.col-start, .task-list-table th.col-end { text-align: center; }
+.task-list-table td { padding: 4px 6px; border-bottom: 1px solid #f0f2f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task-list-table td.col-name { white-space: normal; }
+.task-list-table td.col-st, .task-list-table td.col-start, .task-list-table td.col-end { text-align: center; }
 .task-list-table tbody tr:hover { background: #eef6fb; }
-.task-list-table tr.task-group-row td { background: #eef3f6; color: #2c3e50; font-weight: bold; padding: 5px 8px; border-top: 1px solid #dfe3e6; border-bottom: 1px solid #dfe3e6; }
+.task-list-table tr.task-group-row td { background: #eef3f6; color: #2c3e50; font-weight: bold; padding: 5px 8px; border-top: 1px solid #dfe3e6; border-bottom: 1px solid #dfe3e6; white-space: normal; }
 .task-list-table tr.task-group-row:hover td { background: #eef3f6; }
+
+/* 状態ごとの色分け（遅延=赤／進行中=青／未着手=緑／済=グレー） */
+.task-list-table tr.task-row td { border-left: 3px solid transparent; }
+.task-list-table tr.st-delayed td { background: #fdecea; }
+.task-list-table tr.st-delayed td.col-st { border-left-color: #e53935; }
+.task-list-table tr.st-delayed:hover td { background: #fbdedb; }
+.task-list-table tr.st-inprogress td { background: #eaf3fc; }
+.task-list-table tr.st-inprogress td.col-st { border-left-color: #1e88e5; }
+.task-list-table tr.st-inprogress:hover td { background: #ddebf9; }
+.task-list-table tr.st-notstarted td.col-st { border-left-color: #43a047; }
+.task-list-table tr.st-done td { color: #b0bec5; }
+.task-list-table tr.st-done td.col-st { border-left-color: #cfd8dc; }
 
 .empty-state { text-align: center; padding: 60px 20px; color: #90a4ae; font-size: 13px; }
 
