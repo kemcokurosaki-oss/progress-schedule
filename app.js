@@ -447,17 +447,23 @@ function fmtDateTime(ts) {
     return `${d.getMonth() + 1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
+const EXPAND_STATUS_COLUMNS = [
+    { key: "delayed",    label: "遅延" },
+    { key: "inprogress", label: "進行中" },
+    { key: "notstarted", label: "未着手" },
+    { key: "done",       label: "完了" },
+];
+
 function expandPanelHtml(row) {
     const today = todayStr();
     const pn = row.project_number;
     const logState = changeLogCache.get(pn);
     const logLoading = logState === "loading" || logState === undefined;
-    const STATUS_ORDER = { delayed: 0, inprogress: 1, notstarted: 2, done: 3 };
 
-    // 工程（parent）ごとにグループ化。グループ内は遅延優先で並べる
-    const groups = STAGES.map(s => ({ label: s.label, tasks: row.stageSummaries[s.key].tasks }))
-        .concat([{ label: "その他", tasks: row.otherTasks }])
-        .filter(g => g.tasks.length > 0);
+    // 状態（遅延・進行中・未着手・完了）ごとにグループ化。グループ内は終了日が近い順
+    const buckets = { delayed: [], inprogress: [], notstarted: [], done: [] };
+    row.allTasks.forEach(t => buckets[classifyTask(t, today)].push(t));
+    Object.values(buckets).forEach(list => list.sort((a, b) => (a.end_date || "").localeCompare(b.end_date || "")));
 
     function taskRowHtml(t) {
         const st = classifyTask(t, today);
@@ -470,9 +476,8 @@ function expandPanelHtml(row) {
                 ? "変更履歴：\n" + hist.map(h => `${fmtDateTime(h.changed_at)} ${h.changed_by || "?"}：${h.description || ""}`).join("\n")
                 : "変更履歴はありません";
         }
-        return `<tr class="task-row st-${st}" title="${escapeHtml(historyTitle)}">
+        return `<tr title="${escapeHtml(historyTitle)}">
             <td class="col-st"><span class="status-badge ${st}">${STATUS_LABEL[st]}</span></td>
-            <td class="col-dept">${escapeHtml(t.major_item || "")}</td>
             <td class="col-name">${escapeHtml(t.text || "")}</td>
             <td class="col-owner">${escapeHtml(t.owner || "担当未定")}</td>
             <td class="col-start">${t.start_date ? fmtDate(t.start_date) : ""}</td>
@@ -480,29 +485,26 @@ function expandPanelHtml(row) {
         </tr>`;
     }
 
-    const bodyHtml = groups.map(g => {
-        const doneCount = g.tasks.filter(t => classifyTask(t, today) === "done").length;
-        const sorted = g.tasks.slice().sort((a, b) => {
-            const stA = classifyTask(a, today), stB = classifyTask(b, today);
-            if (STATUS_ORDER[stA] !== STATUS_ORDER[stB]) return STATUS_ORDER[stA] - STATUS_ORDER[stB];
-            return (a.end_date || "").localeCompare(b.end_date || "");
-        });
-        return `<tr class="task-group-row"><td colspan="6">${escapeHtml(g.label)}（${doneCount}/${g.tasks.length}）</td></tr>`
-            + sorted.map(taskRowHtml).join("");
+    const colsHtml = EXPAND_STATUS_COLUMNS.map(col => {
+        const tasks = buckets[col.key];
+        const bodyHtml = tasks.length
+            ? tasks.map(taskRowHtml).join("")
+            : `<tr><td colspan="5" class="expand-empty">タスクはありません</td></tr>`;
+        return `<div class="status-col">
+            <div class="status-col-head st-${col.key}">${col.label}（${tasks.length}）</div>
+            <div class="status-col-body">
+                <table class="mini-task-table">
+                    <colgroup><col class="col-st"><col class="col-name"><col class="col-owner"><col class="col-start"><col class="col-end"></colgroup>
+                    <thead><tr><th class="col-st">状態</th><th class="col-name">タスク名</th><th class="col-owner">担当者</th><th class="col-start">開始日</th><th class="col-end">終了日</th></tr></thead>
+                    <tbody>${bodyHtml}</tbody>
+                </table>
+            </div>
+        </div>`;
     }).join("");
 
     return `
         <div class="task-list-hint">${logLoading ? "変更履歴を読み込み中です…" : "行にマウスを乗せると、そのタスクの変更履歴が表示されます"}</div>
-        <div class="task-list-scroll">
-            <table class="task-list-table">
-                <colgroup>
-                    <col class="col-st"><col class="col-dept"><col class="col-name">
-                    <col class="col-owner"><col class="col-start"><col class="col-end">
-                </colgroup>
-                <thead><tr><th class="col-st">状態</th><th class="col-dept">部署</th><th class="col-name">タスク名</th><th class="col-owner">担当者</th><th class="col-start">開始日</th><th class="col-end">終了日</th></tr></thead>
-                <tbody>${bodyHtml || `<tr><td colspan="6" class="expand-empty">タスクがありません</td></tr>`}</tbody>
-            </table>
-        </div>`;
+        <div class="status-cols">${colsHtml}</div>`;
 }
 
 function renderTable() {
