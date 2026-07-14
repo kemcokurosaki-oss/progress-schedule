@@ -420,9 +420,10 @@ window.hideHistoryTip = hideHistoryTip;
 document.addEventListener("click", (e) => {
     const popover = document.getElementById("stage-popover");
     if (popover.classList.contains("visible") && !popover.contains(e.target)) closeStagePopover();
+    hideHistoryTip();
 });
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeStagePopover();
+    if (e.key === "Escape") { closeStagePopover(); hideHistoryTip(); }
 });
 
 // 案件の変更履歴（change_log）：project_number単位でキャッシュ（"loading"中は読み込み中を表す）
