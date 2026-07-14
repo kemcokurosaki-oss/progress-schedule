@@ -395,8 +395,9 @@ window.showStagePopover = showStagePopover;
 window.showOtherPopover = showOtherPopover;
 window.closeStagePopover = closeStagePopover;
 
-/** タスク行にマウスを乗せた際、変更履歴を独自の吹き出し（#history-tip）で表示する（title属性のネイティブツールチップは文字サイズ・フォントを変更できないため） */
+/** タスク行をクリックした際、変更履歴を独自の吹き出し（#history-tip）で表示する（title属性のネイティブツールチップは文字サイズ・フォントを変更できないため） */
 function showHistoryTip(evt) {
+    evt.stopPropagation();
     const text = evt.currentTarget.dataset.history;
     if (!text) return;
     const tip = document.getElementById("history-tip");
