@@ -16,7 +16,7 @@ const STAGES = [
     { key: "order",       label: "受注",         parents: ["受注"], textKeywords: ["受注日", "受注説明会"] },
     { key: "plan",        label: "計画承認",     parents: ["基本設計＆計画承認"], textKeywords: ["計画設計", "計画図", "客先承認", "外形図", "電気図面設計", "電気図面客先提出"] },
     { key: "longlead",    label: "長納期手配",   parents: ["長納期品手配"], textKeywords: ["長納期"], taskTypes: ["long_lead_item"] },
-    { key: "drawing",     label: "出図・手配",   parents: ["出図＆部品手配"], textKeywords: ["出図", "製作品納期", "購入品納期", "部品製作", "部品加工", "神戸送り開始日"], taskTypes: ["drawing"] },
+    { key: "drawing",     label: "出図・手配",   parents: ["出図＆部品手配"], textKeywords: ["出図", "製作品納期", "購入品納期", "部品製作", "部品加工", "神戸送り開始日", "外注支給"], taskTypes: ["drawing"] },
     { key: "electric",    label: "電気設計",     parents: ["電気設計＆電気品手配"], textKeywords: ["最終電気図面", "電気品手配", "電気品納期"] },
     { key: "panel",       label: "盤製作",       parents: ["盤製作"], textKeywords: ["盤組立", "盤製作"] },
     { key: "assembly",    label: "組立",         parents: ["組立全体"], textKeywords: ["機械組立", "電気艤装"] },
