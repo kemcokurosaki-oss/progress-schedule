@@ -118,17 +118,17 @@ table.progress-table { border-collapse: separate; border-spacing: 0; width: 100%
 .status-col-body { max-height: 360px; overflow: auto; }
 
 .mini-task-table { width: auto; table-layout: fixed; border-collapse: collapse; font-size: 12px; background: #fff; }
-.mini-task-table col.col-st { width: 50px; }
-.mini-task-table col.col-name { width: 150px; }
+.mini-task-table col.col-name { width: 130px; }
+.mini-task-table col.col-machine { width: 66px; }
+.mini-task-table col.col-unit { width: 60px; }
 .mini-task-table col.col-owner { width: 62px; }
 .mini-task-table col.col-start, .mini-task-table col.col-end { width: 78px; }
 .mini-task-table th { position: sticky; top: 0; text-align: left; padding: 5px 6px; background: #eef3f6; color: #546e7a; font-weight: bold; border-bottom: 1px solid #dfe3e6; white-space: nowrap; }
-.mini-task-table th.col-st, .mini-task-table th.col-start, .mini-task-table th.col-end { text-align: center; }
+.mini-task-table th.col-start, .mini-task-table th.col-end { text-align: center; }
 .mini-task-table td { padding: 4px 6px; border-bottom: 1px solid #f0f2f3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mini-task-table td.col-name, .mini-task-table td.col-owner { white-space: normal; }
-.mini-task-table td.col-st, .mini-task-table td.col-start, .mini-task-table td.col-end { text-align: center; }
+.mini-task-table td.col-name, .mini-task-table td.col-machine, .mini-task-table td.col-unit, .mini-task-table td.col-owner { white-space: normal; }
+.mini-task-table td.col-start, .mini-task-table td.col-end { text-align: center; }
 .mini-task-table tbody tr:hover { background: #eef6fb; }
-.mini-task-table td.col-st .status-badge { box-shadow: 0 0 0 1px rgba(255,255,255,0.8); }
 
 .empty-state { text-align: center; padding: 60px 20px; color: #90a4ae; font-size: 13px; }
 
