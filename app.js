@@ -301,9 +301,9 @@ function renderSummary() {
 }
 
 /** 点検専用工程⇔通常工程の切り替わり位置に区切り線を入れるための判定 */
-function isStageGroupBoundary(i) {
+function isStageGroupBoundary(stages, i) {
     if (i === 0) return false;
-    return !!(STAGES[i - 1] && STAGES[i - 1].isInspection) !== !!STAGES[i].isInspection;
+    return !!(stages[i - 1] && stages[i - 1].isInspection) !== !!stages[i].isInspection;
 }
 
 function stageCellHtml(row, stage, isGroupBoundary) {
