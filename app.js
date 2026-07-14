@@ -395,6 +395,28 @@ window.showStagePopover = showStagePopover;
 window.showOtherPopover = showOtherPopover;
 window.closeStagePopover = closeStagePopover;
 
+/** タスク行にマウスを乗せた際、変更履歴を独自の吹き出し（#history-tip）で表示する（title属性のネイティブツールチップは文字サイズ・フォントを変更できないため） */
+function showHistoryTip(evt) {
+    const text = evt.currentTarget.dataset.history;
+    if (!text) return;
+    const tip = document.getElementById("history-tip");
+    tip.textContent = text;
+    tip.classList.add("visible");
+    const rect = evt.currentTarget.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    let left = rect.left;
+    let top = rect.bottom + 6;
+    if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8;
+    if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 6;
+    tip.style.left = Math.max(8, left) + "px";
+    tip.style.top = Math.max(8, top) + "px";
+}
+function hideHistoryTip() {
+    document.getElementById("history-tip").classList.remove("visible");
+}
+window.showHistoryTip = showHistoryTip;
+window.hideHistoryTip = hideHistoryTip;
+
 document.addEventListener("click", (e) => {
     const popover = document.getElementById("stage-popover");
     if (popover.classList.contains("visible") && !popover.contains(e.target)) closeStagePopover();
