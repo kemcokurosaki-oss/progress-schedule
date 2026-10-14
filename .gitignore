@@ -1,0 +1,23 @@
+
+# 業務資料・個人情報を含みやすいファイルは公開リポジトリに上げない（手元・SharePoint で管理する）
+# どうしても公開が必要なファイルは git add -f で個別に追加する
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.zip
+*.bak
+~$*
+
+# 秘密情報・作業用
+.env
+.env.*
+*.pem
+*.key
+node_modules/
+.claude/
