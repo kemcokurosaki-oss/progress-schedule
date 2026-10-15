@@ -1,8 +1,9 @@
 // 進捗管理表：全体工程表と同じ Supabase(tasks テーブル)を参照する閲覧専用アプリ
-// 認証なし・読み取り専用（tasks_select_public_read ポリシーにより anon で SELECT 可能）
+// 読み取り専用。ログインは m365-login.js（完全移行後はログインしないと閲覧できない）
 const S_URL = "https://dgekjzkrybrswsxlcbvh.supabase.co";
 const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZWtqemtyeWJyc3dzeGxjYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4ODQ3MjIsImV4cCI6MjA4NDQ2MDcyMn0.BsEj53lV3p76yE9fMPTaLn7ocKTNzYPTqIAnBafYItU";
-const supabaseClient = supabase.createClient(S_URL, S_KEY, { auth: { persistSession: false } });
+const supabaseClient = supabase.createClient(S_URL, S_KEY);
+M365Login.init(supabaseClient, { appName: '進捗管理表' });
 
 // 全体工程表のタスク見出し(parent)を、工程管理者が追う代表工程列にマッピング
 // 2000番台以外は parent（見出し）が空/案件固有のため、textKeywords でタスク名から推定する
