@@ -3,7 +3,7 @@
 const S_URL = "https://dgekjzkrybrswsxlcbvh.supabase.co";
 const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZWtqemtyeWJyc3dzeGxjYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4ODQ3MjIsImV4cCI6MjA4NDQ2MDcyMn0.BsEj53lV3p76yE9fMPTaLn7ocKTNzYPTqIAnBafYItU";
 const supabaseClient = supabase.createClient(S_URL, S_KEY);
-M365Login.init(supabaseClient, { appName: '進捗管理表', mountAfter: '#refresh-btn' });
+M365Login.init(supabaseClient, { appName: '進捗管理表', mountAfter: '#refresh-btn', canEdit: () => false }); // 閲覧専用のアプリ
 
 // 全体工程表のタスク見出し(parent)を、工程管理者が追う代表工程列にマッピング
 // 2000番台以外は parent（見出し）が空/案件固有のため、textKeywords でタスク名から推定する
