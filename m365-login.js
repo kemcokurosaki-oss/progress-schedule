@@ -1,5 +1,7 @@
 // Microsoft 365 ログイン（ログイン機能を持たないアプリ向けの共通部品）
-// 使い方: Supabase のクライアントを作った直後に M365Login.init(client, { appName: '進捗管理表' }) を呼ぶ。
+// 使い方: Supabase のクライアントを作った直後に M365Login.init(client, { appName: '進捗管理表', mountAfter: '#refresh-btn' }) を呼ぶ。
+// mountAfter に指定したボタンのすぐ右に、ログイン中の人のアイコンを置く（押すと名前とログアウトを表示）。
+// 指定が無い・見つからないときは画面の右下に置く。
 //
 // 完全移行スイッチ M365_ONLY を true にすると、ログインしないと閲覧できなくなる（ログイン画面を閉じられない状態で出す）。
 // ログイン画面は「Microsoftでサインイン」だけで、パスワード欄は非常用に URL へ ?pw=1 を付けたときだけ表示する。
@@ -28,10 +30,20 @@
 #m365_login_dialog .m365-pw-btn { width: 100%; padding: 9px; background: #3498db; color: #fff; border: none; border-radius: 4px;
     font-size: 13px; cursor: pointer; font-family: inherit; }
 #m365_login_dialog .m365-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 0; }
-#m365_user_chip { position: fixed; right: 10px; bottom: 10px; z-index: 2147482000; background: rgba(255,255,255,.95);
-    border: 1px solid #d0d7e2; border-radius: 16px; padding: 4px 6px 4px 12px; font-size: 12px; color: #333;
-    font-family: 'メイリオ', Meiryo, sans-serif; display: none; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
-#m365_user_chip button { border: none; background: #eef2f7; border-radius: 12px; padding: 3px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+#m365_user_chip { position: relative; display: none; align-items: center; margin-left: 6px; vertical-align: middle;
+    font-family: 'メイリオ', Meiryo, sans-serif; }
+#m365_user_chip.m365-floating { position: fixed; right: 10px; bottom: 10px; z-index: 2147482000; margin: 0; }
+#m365_user_btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #c8cfda; background: #fff; color: #2f6fb0;
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+#m365_user_btn:hover { background: #f3f6fa; }
+#m365_user_menu { display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 2147482001; min-width: 200px;
+    background: #fff; border: 1px solid #d0d7e2; border-radius: 8px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.18);
+    font-size: 12px; color: #333; text-align: left; }
+#m365_user_chip.m365-floating #m365_user_menu { top: auto; bottom: calc(100% + 6px); }
+#m365_user_menu.open { display: block; }
+#m365_user_menu .m365-user-email { color: #888; font-size: 11px; margin-top: 2px; word-break: break-all; }
+#m365_user_menu button { margin-top: 10px; width: 100%; border: none; background: #eef2f7; border-radius: 6px; padding: 6px 10px;
+    font-size: 12px; cursor: pointer; font-family: inherit; color: #333; }
 `;
 
     const MS_LOGO = '<svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>';
@@ -40,7 +52,9 @@
 
     function el(id) { return document.getElementById(id); }
 
-    function build(appName) {
+    const USER_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+
+    function build(appName, mountAfter) {
         const style = document.createElement('style');
         style.textContent = CSS;
         document.head.appendChild(style);
@@ -62,10 +76,17 @@
         overlay.querySelector('h2').textContent = `${appName} ログイン`;
         document.body.appendChild(overlay);
 
-        const chip = document.createElement('div');
+        const chip = document.createElement('span');
         chip.id = 'm365_user_chip';
-        chip.innerHTML = '<span id="m365_user_name"></span><button type="button" id="m365_logout_btn">ログアウト</button>';
-        document.body.appendChild(chip);
+        chip.innerHTML = `<button type="button" id="m365_user_btn" title="ログイン中のユーザー">${USER_ICON}</button>
+<div id="m365_user_menu"><div id="m365_user_name"></div><div class="m365-user-email" id="m365_user_email"></div>
+<button type="button" id="m365_logout_btn">ログアウト</button></div>`;
+        const anchor = mountAfter ? document.querySelector(mountAfter) : null;
+        if (anchor) anchor.insertAdjacentElement('afterend', chip);
+        else { chip.classList.add('m365-floating'); document.body.appendChild(chip); }
+        el('m365_user_btn').addEventListener('click', (e) => { e.stopPropagation(); el('m365_user_menu').classList.toggle('open'); });
+        el('m365_user_menu').addEventListener('click', (e) => e.stopPropagation());
+        document.addEventListener('click', () => el('m365_user_menu').classList.remove('open'));
 
         el('m365_pw_area').style.display = SHOW_PASSWORD && M365_ONLY ? '' : 'none';
         el('m365_ms_btn').addEventListener('click', signInMicrosoft);
@@ -108,7 +129,8 @@
         if (user) {
             const meta = user.user_metadata || {};
             el('m365_user_name').textContent = meta.full_name || meta.name || user.email;
-            el('m365_user_chip').style.display = 'flex';
+            el('m365_user_email').textContent = user.email;
+            el('m365_user_chip').style.display = 'inline-flex';
             el('m365_login_overlay').classList.remove('open');
         } else {
             el('m365_user_chip').style.display = 'none';
@@ -118,10 +140,10 @@
 
     window.M365Login = {
         M365_ONLY,
-        init(supabaseClient, { appName }) {
+        init(supabaseClient, { appName, mountAfter }) {
             client = supabaseClient;
             const start = () => {
-                build(appName);
+                build(appName, mountAfter);
                 const oauthError = oauthErrorFromUrl();
                 client.auth.onAuthStateChange((event, session) => {
                     if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') render(session);
